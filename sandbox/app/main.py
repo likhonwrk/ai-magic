@@ -8,9 +8,9 @@ import sys
 from app.core.config import settings
 from app.api.router import api_router
 from app.core.exceptions import (
-    AppException, 
-    app_exception_handler, 
-    http_exception_handler, 
+    AppException,
+    app_exception_handler,
+    http_exception_handler,
     validation_exception_handler,
     general_exception_handler
 )
@@ -20,13 +20,13 @@ from app.core.middleware import auto_extend_timeout_middleware
 def setup_logging():
     """
     Set up the application logging system
-    
+
     Configures log level, format, and handlers based on application settings.
     Outputs logs to stdout for container compatibility.
     """
     log_level = getattr(logging, settings.LOG_LEVEL)
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    
+
     logging.basicConfig(
         level=log_level,
         format=log_format,
@@ -34,11 +34,11 @@ def setup_logging():
     )
     # Get root logger
     root_logger = logging.getLogger()
-    
+
     # Set root log level
     log_level = getattr(logging, settings.LOG_LEVEL)
     root_logger.setLevel(log_level)
-    
+
     # Log setup completion
     logging.info("Sandbox logging system initialized with level: %s", settings.LOG_LEVEL)
 
@@ -46,9 +46,11 @@ def setup_logging():
 setup_logging()
 logger = logging.getLogger(__name__)
 
-app = FastAPI(
-    version="1.0.0",
-)
+app = FastAPI(title="Manus Sandbox", version="1.0.0")
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 # Set up CORS
 app.add_middleware(

@@ -21,7 +21,7 @@ console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
-app = FastAPI()
+app = FastAPI(title="Mock LLM Server", version="1.0.0")
 
 # Add CORS middleware
 app.add_middleware(
@@ -51,6 +51,10 @@ class ChatCompletionResponse(BaseModel):
     #model: str
     choices: List[Dict[str, Any]]
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 def load_mock_data():
     # Get mock data filename from environment variable, default to default.yaml
     mock_file = os.getenv("MOCK_DATA_FILE", "default.yaml")
@@ -77,12 +81,12 @@ async def chat_completions(request: ChatCompletionRequest):
     if len(request.messages) == 2 and current_index > 1:
         current_index = 0
         logger.info("Reset index to 0")
-    
+
     delay = float(os.getenv("MOCK_DELAY", "1"))
     if delay > 0:
         logger.debug(f"Applying mock delay of {delay} seconds")
         await asyncio.sleep(delay)
-    
+
     response = mock_data[current_index]
     current_index = (current_index + 1) % len(mock_data)
     logger.info(f"Returning mock response {current_index}/{len(mock_data)}")

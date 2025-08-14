@@ -2,3 +2,15 @@ modules = ["python-3.12", "vue-node-20", "nodejs-20", "bash", "web"]
 
 [nix]
 channel = "stable-25_05"
+
+[workflows]
+runButton = "Start AI Manus"
+
+[[workflows.workflow]]
+name = "Start AI Manus"
+author = 46397271
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python start_dev.py"
