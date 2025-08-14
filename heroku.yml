@@ -1,0 +1,14 @@
+
+setup:
+  addons:
+    - plan: heroku-redis:mini
+    - plan: heroku-postgresql:mini
+build:
+  docker:
+    web: Dockerfile
+release:
+  image: web
+  command:
+    - python backend/app/main.py
+run:
+  web: python start_dev.py

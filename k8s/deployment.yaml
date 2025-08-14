@@ -1,0 +1,100 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manus-backend
+  labels:
+    app: manus-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: manus-backend
+  template:
+    metadata:
+      labels:
+        app: manus-backend
+    spec:
+      containers:
+      - name: backend
+        image: simpleyyt/manus-backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: manus-secrets
+              key: api-key
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: manus-secrets
+              key: jwt-secret
+        - name: MONGODB_URI
+          value: "mongodb://mongodb:27017"
+        - name: REDIS_HOST
+          value: "redis"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manus-frontend
+  labels:
+    app: manus-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: manus-frontend
+  template:
+    metadata:
+      labels:
+        app: manus-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: simpleyyt/manus-frontend:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: BACKEND_URL
+          value: "http://manus-backend:8000"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: manus-backend
+spec:
+  selector:
+    app: manus-backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: manus-frontend
+spec:
+  selector:
+    app: manus-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer

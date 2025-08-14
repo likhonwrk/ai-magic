@@ -1,0 +1,58 @@
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.12'
+  nodeVersion: '20.x'
+
+stages:
+- stage: Test
+  jobs:
+  - job: BackendTests
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+    - script: |
+        cd backend
+        pip install -r requirements.txt
+        pip install -r tests/requirements.txt
+        pytest
+      displayName: 'Run backend tests'
+
+  - job: FrontendTests
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '$(nodeVersion)'
+    - script: |
+        cd frontend
+        npm ci
+        npm run test
+      displayName: 'Run frontend tests'
+
+- stage: Build
+  dependsOn: Test
+  jobs:
+  - job: BuildImages
+    steps:
+    - task: Docker@2
+      displayName: 'Build backend image'
+      inputs:
+        command: 'build'
+        dockerfile: 'backend/Dockerfile'
+        tags: '$(Build.BuildId)'
+        
+    - task: Docker@2
+      displayName: 'Build frontend image'
+      inputs:
+        command: 'build'
+        dockerfile: 'frontend/Dockerfile'
+        tags: '$(Build.BuildId)'

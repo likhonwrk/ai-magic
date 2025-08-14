@@ -1,0 +1,42 @@
+
+name: manus-ai
+type: python:3.12
+
+variables:
+  env:
+    LOG_LEVEL: "INFO"
+
+web:
+  commands:
+    start: "python start_dev.py"
+  locations:
+    "/":
+      root: "frontend/dist"
+      index: ["index.html"]
+      rules:
+        "^/api/":
+          passthru: true
+
+disk: 1024
+
+mounts:
+  "/.tmp": "shared:files/tmp"
+  "/data": "shared:files/data"
+
+hooks:
+  build: |
+    pip install -r backend/requirements.txt
+    cd frontend && npm ci && npm run build
+  deploy: |
+    python health_check.py
+
+services:
+  mongodb:
+    type: mongodb:4.4
+    disk: 1024
+  redis:
+    type: redis:6.0
+
+relationships:
+  mongodb: "mongodb:mongodb"
+  redis: "redis:redis"

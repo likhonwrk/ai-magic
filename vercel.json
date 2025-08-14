@@ -1,0 +1,38 @@
+
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/app/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/app/main.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/dist/$1"
+    }
+  ],
+  "env": {
+    "API_KEY": "@api_key",
+    "API_BASE": "@api_base",
+    "MODEL_NAME": "@model_name",
+    "JWT_SECRET_KEY": "@jwt_secret_key",
+    "MONGODB_URI": "@mongodb_uri",
+    "REDIS_HOST": "@redis_host"
+  },
+  "functions": {
+    "backend/app/main.py": {
+      "maxDuration": 30
+    }
+  }
+}
